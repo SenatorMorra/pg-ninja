@@ -1,0 +1,21 @@
+{
+  "name": "pg-ninja",
+  "version": "1.1.0",
+  "description": "a lightweight asynchronous library for executing PostgreSQL queries and transactions",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Senator Morra",
+  "license": "ISC",
+  "dependencies": {
+    "pg": "^8.13.0"
+  },
+  "keywords": [
+    "postgresql",
+    "pg",
+    "database",
+    "testing"
+  ],
+  "type": "module"
+}
