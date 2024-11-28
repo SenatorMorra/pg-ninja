@@ -65,22 +65,18 @@ promise returns only resolve value, no reject.
 result syntax: 
 
 ```
-[status: boolean, result: object]: Array
+result: object
 ```
 
-**status**: true - success query, false - any error on query (syntax, permissions, wrong names, etc.)
-
-**result**: on true - query body from 'pg', on false - Error body from 'pg'
+**result**: `resolve` - query body from `pg`, `reject` - Error body from `pg`
 
 regular promise handler:
 
 ```
 connection.query('SELECT 1 AS test;').then(res => {
-
-	console.log(res[0]); // true
-
-	console.log(res[1]?.rows?.[0]); // { test: 1 }
-
+	console.log(res?.rows?.[0]); // { test: 1 }
+}, err => {
+    console.log(err); // in case of Connection / Query error
 });
 ```
 
@@ -90,14 +86,17 @@ async/await promise handler:
 async function test() {
 	let responce = await connection.query('SELECT 1 AS test;');
 
-    console.log(responce[0]); // true
-    console.log(responce[1]?.rows?.[0]); // { test: 1 }
-
+    if (responce.command) { // or any other Result/Error validation
+        console.log(responce?.rows?.[0]); // { test: 1 }
+    } else console.log(responce); // error
+    
     return responce;
 }
 
 test();
 ```
+
+**! do not `return` reject-available function !**
 
 ---
 
@@ -118,14 +117,10 @@ promise returns only resolve value, no reject
 result syntax:
 
 ```
-[status: boolean, result: object, ...index: integer]
+result: object
 ```
 
-**status**: true - success query, false - any error on query
-
-**result**: on true - last query body from 'pg', on false - first Error body from 'pg'
-
-**index**: on Query error (non fatal error) return index of problem query with rollback transaction
+**result**: `resolve` - last query body from `pg`, on `reject` - first Error body from `pg`
 
 regular promise handler:
 
@@ -134,7 +129,9 @@ connection.transaction([
 	[ 'SELECT 1 AS test;' ],
 	[ 'SELECT $1 AS test;', [1] ],
 ]).then(res => {
-	console.log(res[1]?.rows?.[0]); // { test: '1' }
+	console.log(res?.rows?.[0]); // { test: '1' }
+}, err => {
+    console.log(err); // Connection error / any invalid query
 });
 ```
 
@@ -147,13 +144,16 @@ async function test() {
 		[ 'SELECT $1 AS test;', [1] ],
 	]);
 
-	console.log(responce[1]?.rows?.[0]); // { test: '1' }
+    if (responce.command) console.log(responce?.rows?.[0]); // { test: '1' }
+    else console.log(responce); // error	
     
     return responce;
 }
 
 test();
 ```
+
+**! do not `return` reject-available function !**
 
 ---
 
