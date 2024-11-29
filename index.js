@@ -1,22 +1,52 @@
 import pg from "pg";
-const { Pool } = pg;
+import defaults from "pg/lib/defaults.js";
 
-export default class d {
-  #pg_pool;
+const { Client } = pg;
 
-  constructor(config) {
-    this.#pg_pool = new Pool(config);
-    this.#pg_pool.connect();
+export default class PG_Ninja {
+  #client;
+  #log;
+  #send_log;
+
+  constructor(config = defaults, log = true) {
+    this.#client = new Client(config);
+    this.#log = log;
+    this.#send_log = (message, color = "white") => {
+      let colors = {
+        white: "\x1b[37m",
+        green: "\x1b[32m",
+        yellow: "\x1b[33m",
+        red: "\x1b[31m",
+        blue: "\x1b[34m",
+      };
+
+      if (this.#log) {
+        console.log(
+          colors[color],
+          `[${new Date().toLocaleString()}] - ${message}`
+        );
+      }
+      return;
+    };
+    this.#client.connect().then((res) => {
+      this.#send_log("successfully connected to the database", "green");
+    });
   }
 
   async query(q, ...args) {
     return new Promise((resolve, reject) => {
       try {
-        this.#pg_pool.query(q, ...args, (err, res) => {
-          if (err) reject(err);
-          else resolve(res);
+        this.#client.query(q, ...args, (err, res) => {
+          if (err) {
+            this.#send_log(`error with query: ${q}`, "yellow");
+            reject(err);
+          } else {
+            this.#send_log(`success query: ${q}`, "blue");
+            resolve(res);
+          }
         });
       } catch (e) {
+        this.#send_log(`fatal error with query: ${q}`, "red");
         reject(e);
       }
     });
@@ -25,18 +55,30 @@ export default class d {
   async transaction(querys) {
     return new Promise(async (resolve, reject) => {
       try {
-        await this.#pg_pool.query("BEGIN");
+        await this.#client.query("BEGIN");
         let r;
         for (let i = 0; i < querys.length; i++) {
           r = await this.query(querys[i][0], querys[i][1]);
           if (r.command == undefined) {
-            await this.#pg_pool.query("ROLLBACK");
+            this.#send_log(
+              `failed transaction of ${querys.length} queries`,
+              "yellow"
+            );
+            await this.#client.query("ROLLBACK");
             reject(err);
           }
         }
-        await this.#pg_pool.query("COMMIT");
+        await this.#client.query("COMMIT");
+        this.#send_log(
+          `success transaction of ${querys.length} queries`,
+          "blue"
+        );
         resolve(r);
       } catch (e) {
+        this.#send_log(
+          `fatal error with transaction of ${querys.length} queries`,
+          "red"
+        );
         reject(e);
       }
     });
@@ -72,6 +114,10 @@ export default class d {
 
               if (flag == qrs.length) {
                 resp.operation_time = new Date().valueOf() - time_point;
+                this.#send_log(
+                  `new ${resp.completed}/${resp.completed_of} multi-query`,
+                  "white"
+                );
                 resolve(resp);
               }
             },
@@ -81,8 +127,18 @@ export default class d {
       } catch (e) {
         resp.fatal_error = e;
         resp.success = false;
+        this.#send_log(
+          `fatal error of ${qrs.length} queries multi-query`,
+          "red"
+        );
         resolve(resp);
       }
     });
+  }
+
+  async end() {
+    await this.#client.end();
+    this.#send_log("closed connection", "white");
+    return;
   }
 }
