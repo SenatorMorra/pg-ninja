@@ -12,6 +12,7 @@ a lightweight asynchronous library for executing PostgreSQL queries and transact
     - [query](#Queries)
     - [transaction](#Transactions)
     - [multi-query](#Multi-queries)
+    - [release connection](#Release-connection)
 
 ## installation
 
@@ -25,7 +26,7 @@ $ npm i pg-ninja
 
 ---
 
-library have only 3 functions, for queries, transactions and multi-queries that will help you with testing or filling your database and queries base.
+library have only 4 functions, for queries, transactions, and for finish connection, also it supports function for testing with multi-queries and logging by default that will help you with testing or filling your database and queries base.
 
 ### **Import**
 
@@ -43,10 +44,22 @@ const connection = new database({
 ### **Constructor**
 
 ```
-new database(connection: JSON): object
+new database(connection: JSON, logging:boolean): object
 ```
 
-JSON connection object for 'pg'
+JSON connection object for `pg`
+
+logging default is `true` so each `pg-nijna` operation leads to log record about it.
+`false` value does not provide any console records.
+
+colors for operations:
+```
+white - no specify operaion (multiquery, end connection)
+green - success connection
+yellow - WARN (rollback transaction, query error)
+red - ERROR (any fatal error)
+blue - success operation (transaction, query)
+```
 
 ---
 
@@ -161,7 +174,7 @@ test();
 
 PostgreSQL shell for testing queries base or database security and filling tables
 
-syntax
+syntax:
 
 ```
 connection.multiquery(queries: Array<Array>, save_success=false: boolean): Promise
@@ -233,3 +246,17 @@ async function test() {
 
 test();
 ```
+
+---
+
+## Release connection
+
+For simple non-server scripts we can finish our work with database by close connection.
+
+syntax:
+
+```
+connection.end(): undefined
+```
+
+that's asynchronous function, use `await` for forced release
