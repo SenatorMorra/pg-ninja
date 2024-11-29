@@ -120,10 +120,12 @@ sendind PostgreSQL transaction and returns result of it; on success commit trans
 syntax
 
 ```
-connection.transaction(queries: Array<Array>): Promise
+connection.transaction(queries: Array<string>, params: Array<array>): Promise
 ```
 
-**queries** - Array of `<queries>` for connection.query() - [query, ...parametrs]
+**queries** - Array of string, each string - SQL query
+
+**params** - Array of Array of any data, leave `null` / `undefined` for queries with no body.
 
 promise returns only resolve value, no reject
 
@@ -139,8 +141,11 @@ regular promise handler:
 
 ```
 connection.transaction([
-	[ 'SELECT 1 AS test;' ],
-	[ 'SELECT $1 AS test;', [1] ],
+	'SELECT 1 AS test;',
+	'SELECT $1 AS test;',
+], [
+	null,
+    [ 1 ],
 ]).then(res => {
 	console.log(res?.rows?.[0]); // { test: '1' }
 }, err => {
@@ -153,9 +158,12 @@ async/await promise handler:
 ```
 async function test() {
     let responce = await connection.transaction([
-		[ 'SELECT 1 AS test;' ],
-		[ 'SELECT $1 AS test;', [1] ],
-	]);
+		'SELECT 1 AS test;',
+		'SELECT $1 AS test;',
+	], [
+        null,
+        [ 1 ],
+    ]);
 
     if (responce.command) console.log(responce?.rows?.[0]); // { test: '1' }
     else console.log(responce); // error	
