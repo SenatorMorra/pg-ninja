@@ -52,16 +52,20 @@ export default class PG_Ninja {
     });
   }
 
-  async transaction(querys) {
+  async transaction(queries, bodies) {
     return new Promise(async (resolve, reject) => {
       try {
+        queries = queries.map((x, i) => {
+          return [x, bodies[i]];
+        });
+
         await this.#client.query("BEGIN");
         let r;
-        for (let i = 0; i < querys.length; i++) {
-          r = await this.query(querys[i][0], querys[i][1]);
+        for (let i = 0; i < queries.length; i++) {
+          r = await this.query(queries[i][0], queries[i][1]);
           if (r.command == undefined) {
             this.#send_log(
-              `failed transaction of ${querys.length} queries`,
+              `failed transaction of ${queries.length} queries`,
               "yellow"
             );
             await this.#client.query("ROLLBACK");
@@ -70,13 +74,13 @@ export default class PG_Ninja {
         }
         await this.#client.query("COMMIT");
         this.#send_log(
-          `success transaction of ${querys.length} queries`,
+          `success transaction of ${queries.length} queries`,
           "blue"
         );
         resolve(r);
       } catch (e) {
         this.#send_log(
-          `fatal error with transaction of ${querys.length} queries`,
+          `fatal error with transaction of ${queries.length} queries`,
           "red"
         );
         reject(e);
