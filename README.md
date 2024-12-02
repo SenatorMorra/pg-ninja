@@ -9,6 +9,8 @@ Node.js library for work with PostgreSQL.
   	- easier to learn, **good option for students quick start!**
 	- SQL-injection defence with binds
  	- compatibility with `node:pg`
+	- logs for all operation with comfortable syntax
+	- able to extract `SELECT` queries into Excel files
 2. cons `-`:
 	- less functionality
  	- lower performance
@@ -60,7 +62,7 @@ new database(connection: JSON, logging:boolean): object
 
 JSON connection object for `pg`
 
-logging default is `true` so each `pg-nijna` operation leads to log record about it.
+logging default is `true` so each `pg-ninja` operation leads to log record about it.
 `false` value does not provide any console records.
 
 colors for operations:
@@ -99,8 +101,12 @@ example:
 ```
 connection.query('SELECT 1 AS test;').then(res => {
 	console.log(res?.rows?.[0]); // { test: 1 }
+
+	// SELECT queries also have option to convert result into .xlsx Excel file, so use .to_excel() on them like this:
+	res.to_excel('./postgresql_reports/');
+
 }, err => {
-    console.log(err); // in case of Connection / Query error
+    console.log(err); // in case of Connection / Query error	
 });
 ```
 
