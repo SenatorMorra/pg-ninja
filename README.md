@@ -1,6 +1,16 @@
 ## pg-ninja
 
-a lightweight asynchronous library for executing PostgreSQL queries and transactions
+Node.js library for work with PostgreSQL.
+`+`:
+	- less code in result
+ 	- provide testing perfomance and queries base with `.multiquery()` 
+  	- prepared for work with SQL transactions with `.transaction()`
+  	- easier to learn, **good option for students quick start!**
+	- SQL-injection defence with binds
+ 	- compatibility with `node:pg`
+`-`:
+	- less functionality
+ 	- lower performance
 
 # **navigation**
 
@@ -83,7 +93,7 @@ result: object
 
 **result**: `resolve` - query body from `pg`, `reject` - Error body from `pg`
 
-regular promise handler:
+example:
 
 ```
 connection.query('SELECT 1 AS test;').then(res => {
@@ -91,22 +101,6 @@ connection.query('SELECT 1 AS test;').then(res => {
 }, err => {
     console.log(err); // in case of Connection / Query error
 });
-```
-
-async/await promise handler:
-
-```
-async function test() {
-	let responce = await connection.query('SELECT 1 AS test;');
-
-    if (responce.command) { // or any other Result/Error validation
-        console.log(responce?.rows?.[0]); // { test: 1 }
-    } else console.log(responce); // error
-    
-    return responce;
-}
-
-test();
 ```
 
 **! do not `return` reject-available function !**
@@ -137,7 +131,7 @@ result: object
 
 **result**: `resolve` - last query body from `pg`, on `reject` - first Error body from `pg`
 
-regular promise handler:
+example:
 
 ```
 connection.transaction([
@@ -151,27 +145,6 @@ connection.transaction([
 }, err => {
     console.log(err); // Connection error / any invalid query
 });
-```
-
-async/await promise handler:
-
-```
-async function test() {
-    let responce = await connection.transaction([
-		'SELECT 1 AS test;',
-		'SELECT $1 AS test;',
-	], [
-        null,
-        [ 1 ],
-    ]);
-
-    if (responce.command) console.log(responce?.rows?.[0]); // { test: '1' }
-    else console.log(responce); // error	
-    
-    return responce;
-}
-
-test();
 ```
 
 **! do not `return` reject-available function !**
@@ -223,7 +196,7 @@ operation_time: integer - time in ms (divide by 1000 for seconds) for operate al
 success: boolean - true on no Fatal Error (responce.fatal_error), false on Fatal Error (responce.fatal_error)
 ```
 
-regular promise handler with single-query-argument: 
+example with single-query-argument: 
 
 ```
 connection.multiquery([
@@ -235,51 +208,26 @@ connection.multiquery([
 	for (let x in res.failed_query_list) {
 		console.log(`Error in query №${x} - ${res.failed_query_list[x]}`); // Error in query №2 - SELECT * FROM potato;
 	};
-});
+};
 ```
 
-async/await promise handler with single-query-argument:
+example with combine-query-argument:
 
 ```
-async function test() {
-	let responce = await connection.multiquery([
-        [ 'SELECT * FROM users;' ], // users exist
-        [ 'SELECT * FROM users WHERE id = $1', [1] ], // users exist but no users.id=1 -> 0 rows
-        [ 'SELECT * FROM potato;' ], // no potato :( 
-    ]); // can add save_success option here
-
-	console.log(`Completed ${responce.completed} / ${responce.completed_of} quries`); // Completed 2 / 3 queries
-
-	for (let x in responce.failed_query_list) {
-		console.log(`Error in query №${x} - ${responce.failed_query_list[x]}`); // Error in query №2 - SELECT * FROM potato;
-    }
-}
-
-test();
-```
-
-async/await promise handler with combine-query-argument:
-
-```
-async function test() {
-	let responce = await connection.multiquery([
-		'SELECT * FROM users;', // users exist
-        'SELECT * FROM users WHERE id = $1', // users exist but no users.id=1 -> 0 rows
-        'SELECT * FROM potato;', // no potato :( 
-    ], [
-		null, // first query no binds
-		[1], // second query one bind
-		null // third query no binds
-	); // also can add save_success option here
-
-	console.log(`Completed ${responce.completed} / ${responce.completed_of} quries`); // Completed 2 / 3 queries
-
-	for (let x in responce.failed_query_list) {
-		console.log(`Error in query №${x} - ${responce.failed_query_list[x]}`); // Error in query №2 - SELECT * FROM potato;
-    }
-}
-
-test();
+connection.multiquery([
+	'SELECT * FROM users;', // users exist
+	'SELECT * FROM users WHERE id = $1', // users exist but no users.id=1 -> 0 rows
+	'SELECT * FROM potato;', // no potato :( 
+], [
+	null, // first query
+	[1], // second query
+	null, // third query
+).then(res => {
+	console.log(`Completed ${res.completed} / ${res.completed_of} quries`); // Completed 2 / 3 queries
+	for (let x in res.failed_query_list) {
+		console.log(`Error in query №${x} - ${res.failed_query_list[x]}`); // Error in query №2 - SELECT * FROM potato;
+	};
+};
 ```
 
 ---
