@@ -1,14 +1,15 @@
 ## pg-ninja
 
 Node.js library for work with PostgreSQL.
-`+`:
+
+### cons `+`:
 	- less code in result
- 	- provide testing perfomance and queries base with `.multiquery()` 
+ 	- provide testing perfomance and queries base with `.multiquery()`
   	- prepared for work with SQL transactions with `.transaction()`
   	- easier to learn, **good option for students quick start!**
 	- SQL-injection defence with binds
  	- compatibility with `node:pg`
-`-`:
+### pros `-`:
 	- less functionality
  	- lower performance
 
