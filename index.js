@@ -1,7 +1,9 @@
 import pg from "pg";
 import defaults from "pg/lib/defaults.js";
+import pg_excel from "pg-ninja-excel";
 
 const { Client } = pg;
+const excel = new pg_excel();
 
 export default class PG_Ninja {
   #client;
@@ -42,6 +44,11 @@ export default class PG_Ninja {
             reject(err);
           } else {
             this.#send_log(`success query: ${q}`, "blue");
+            if (res.command == "SELECT") {
+              res.to_excel = (path='./') => {
+                excel.pg_to_excel(res.rows, path);
+              };
+            }
             resolve(res);
           }
         });
