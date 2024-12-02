@@ -185,12 +185,15 @@ PostgreSQL shell for testing queries base or database security and filling table
 syntax:
 
 ```
-connection.multiquery(queries: Array<Array>, save_success=false: boolean): Promise
+connection.multiquery(queries: Array<string>, ...params(?): Array<array>, save_success(?)=false: boolean): Promise
 ```
 
-**queries** - Array of `<queries>` for connection.query() - [query, ...parametrs]
+**queries** - There are 2 options how to use this method:
+1. send queries and parameters as one array with syntax: Array of `<query>` for connection.query() - [query, ...parametrs]
+2. send queries and parameters separated with syntax: Array of string - SQL queries, Array of Array of any (parameters)
 
 **save_success** - true - success results of queries will be saved in `responce.success_query_list`, false (default value) - `responce.success_query_list` will be empty
+works for each variant of **queries** as the last function's argument.
 
 promise returns only resolve value, no reject
 
@@ -220,7 +223,7 @@ operation_time: integer - time in ms (divide by 1000 for seconds) for operate al
 success: boolean - true on no Fatal Error (responce.fatal_error), false on Fatal Error (responce.fatal_error)
 ```
 
-regular promise handler: 
+regular promise handler with single-query-argument: 
 
 ```
 connection.multiquery([
@@ -235,7 +238,7 @@ connection.multiquery([
 });
 ```
 
-async/await promise handler:
+async/await promise handler with single-query-argument:
 
 ```
 async function test() {
@@ -243,7 +246,31 @@ async function test() {
         [ 'SELECT * FROM users;' ], // users exist
         [ 'SELECT * FROM users WHERE id = $1', [1] ], // users exist but no users.id=1 -> 0 rows
         [ 'SELECT * FROM potato;' ], // no potato :( 
-    ]);
+    ]); // can add save_success option here
+
+	console.log(`Completed ${responce.completed} / ${responce.completed_of} quries`); // Completed 2 / 3 queries
+
+	for (let x in responce.failed_query_list) {
+		console.log(`Error in query №${x} - ${responce.failed_query_list[x]}`); // Error in query №2 - SELECT * FROM potato;
+    }
+}
+
+test();
+```
+
+async/await promise handler with combine-query-argument:
+
+```
+async function test() {
+	let responce = await connection.multiquery([
+		'SELECT * FROM users;', // users exist
+        'SELECT * FROM users WHERE id = $1', // users exist but no users.id=1 -> 0 rows
+        'SELECT * FROM potato;', // no potato :( 
+    ], [
+		null, // first query no binds
+		[1], // second query one bind
+		null // third query no binds
+	); // also can add save_success option here
 
 	console.log(`Completed ${responce.completed} / ${responce.completed_of} quries`); // Completed 2 / 3 queries
 
