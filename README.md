@@ -2,14 +2,14 @@
 
 Node.js library for work with PostgreSQL.
 
-1. cons `+`:
+1. pros `+`:
 	- less code in result
  	- provide testing perfomance and queries base with `.multiquery()`
   	- prepared for work with SQL transactions with `.transaction()`
   	- easier to learn, **good option for students quick start!**
 	- SQL-injection defence with binds
  	- compatibility with `node:pg`
-2. pros `-`:
+2. cons `-`:
 	- less functionality
  	- lower performance
 
