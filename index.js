@@ -88,7 +88,16 @@ export default class PG_Ninja {
     });
   }
 
-  async multiquery(qrs, save_success = false) {
+  async multiquery(qrs, ...args) {
+    let params = args[0];
+    let save_success = args.at(-1) ? args.at(-1) : false;
+
+    if (params) {
+      qrs = qrs.map((x, i) => {
+        return [x, params[i]];
+      });
+    }
+
     let resp = {
       completed: 0,
       completed_of: qrs.length,
