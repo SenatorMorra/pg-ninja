@@ -1,21 +1,31 @@
 {
   "name": "pg-ninja",
-  "version": "1.1.0",
-  "description": "a lightweight asynchronous library for executing PostgreSQL queries and transactions",
+  "version": "1.3.1",
+  "description": "Node.js lightweight asynchronous library for executing PostgreSQL queries and transactions",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node --watch index.js"
   },
-  "author": "Senator Morra",
-  "license": "ISC",
-  "dependencies": {
-    "pg": "^8.13.0"
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/SenatorMorra/pg-ninja.git"
   },
   "keywords": [
-    "postgresql",
     "pg",
+    "postgres",
+    "postgresql",
     "database",
     "testing"
   ],
+  "author": "Senator Morra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/SenatorMorra/pg-ninja/issues"
+  },
+  "homepage": "https://github.com/SenatorMorra/pg-ninja#readme",
+  "dependencies": {
+    "pg": "^8.13.1",
+    "pg-ninja-excel": "^1.0.5"
+  },
   "type": "module"
 }
