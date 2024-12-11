@@ -1,10 +1,69 @@
 ## pg-ninja documentation
 
+**navigation**
+
+- [installation](#installation)
+- **usage**:
+    - [import library](#Import)
+    - [create connection object](#Constructor)
 - **documentation**:
     - [query](#Queries)
     - [transaction](#Transactions)
     - [multi-query](#Multi-queries)
     - [release connection](#Release-connection)
+
+---
+
+## installation
+
+---
+
+```
+$ npm i pg-ninja
+```
+
+## usage
+
+---
+
+library have only 4 functions, for queries, transactions, and for finish connection, also it supports function for testing with multi-queries and logging by default that will help you with testing or filling your database and queries base.
+
+### **Import**
+
+```
+import database from 'pg-ninja'
+
+const connection = new database({
+	user: 'admin',
+	password: 'admin',
+	host: 'localhost',
+	database: 'project',
+});
+```
+
+### **Constructor**
+
+```
+new database(connection: JSON, logging:boolean): object
+```
+
+JSON connection object for `pg`
+
+logging default is `true` so each `pg-ninja` operation leads to log record about it.
+`false` value does not provide any console records.
+
+colors for operations:
+```
+white - no specify operaion (multiquery, end connection)
+green - success connection
+yellow - WARN (rollback transaction, query error)
+red - ERROR (any fatal error)
+blue - success operation (transaction, query)
+```
+
+---
+
+# Documentation
 
 ---
 
