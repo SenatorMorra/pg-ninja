@@ -37,16 +37,24 @@ export default class PG_Ninja {
 
   async query(q, ...args) {
     return new Promise((resolve, reject) => {
+      let reject_free = false;
+      if (typeof args.at(-1) == "boolean") reject_free = args.at(-1);
+
       try {
-        this.#client.query(q, ...args, (err, res) => {
+        let params = [];
+        if (typeof args[0] == "object") params = args[0];
+
+        this.#client.query(q, params, (err, res) => {
           if (err) {
             this.#send_log(`error with query: ${q}`, "yellow");
-            reject(err);
+
+            if (reject_free) resolve([false, err]);
+            else reject(err);
           } else {
             this.#send_log(`success query: ${q}`, "blue");
             if (res.command == "SELECT") {
-              res.to_excel = (path='./') => {
-                excel.pg_to_excel(res.rows, path);
+              res.to_excel = () => {
+                excel.pg_to_excel(res.rows);
               };
             }
             resolve(res);
@@ -54,12 +62,13 @@ export default class PG_Ninja {
         });
       } catch (e) {
         this.#send_log(`fatal error with query: ${q}`, "red");
-        reject(e);
+        if (reject_free) resolve([false, e]);
+        else reject(e);
       }
     });
   }
 
-  async transaction(queries, bodies) {
+  async transaction(queries, bodies, reject_free = false) {
     return new Promise(async (resolve, reject) => {
       try {
         queries = queries.map((x, i) => {
@@ -76,7 +85,8 @@ export default class PG_Ninja {
               "yellow"
             );
             await this.#client.query("ROLLBACK");
-            reject(err);
+            if (reject_free) resolve([false, err]);
+            else reject(err);
           }
         }
         await this.#client.query("COMMIT");
@@ -90,7 +100,8 @@ export default class PG_Ninja {
           `fatal error with transaction of ${queries.length} queries`,
           "red"
         );
-        reject(e);
+        if (reject_free) resolve([false, e]);
+        else reject(e);
       }
     });
   }
